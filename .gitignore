@@ -2,3 +2,4 @@
 kubeconfig
 
 join-command.sh
+kubectl
