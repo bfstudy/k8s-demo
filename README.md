@@ -8,9 +8,10 @@
 
 # 使用
 
-## 安装步骤
+## 安装k8s
 
 ```bash
+vagrant up
 vagrant up k8s-master
 vagrant up k8s-worker1
 ```
@@ -28,6 +29,7 @@ kubectl get po --all-namespaces
 
 ## Vagrantfile修改后重启虚拟机
 ```bash
+vagrant reload
 vagrant reload k8s-master
 vagrant reload k8s-worker1
 ```
@@ -48,11 +50,6 @@ kubectl get nodes -o wide
 ## 安装helm
 ```bash
 curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
-
-helm repo add harbor https://helm.goharbor.io
-helm repo update
-kubectl create namespace harbor
-helm install harbor harbor/harbor --namespace harbor
 ```
 
 ## 安装kubepi
@@ -62,6 +59,11 @@ kubectl apply -f https://raw.githubusercontent.com/1Panel-dev/KubePi/master/docs
 
 ## 安装harbor
 ```bash
+helm repo add harbor https://helm.goharbor.io
+helm repo update
+kubectl create namespace harbor
+
+
 kubectl apply -f harbor/local-storage.yaml
 kubectl apply -f harbor/harbor-pv-pvc.yaml
 helm install harbor harbor/harbor -f harbor/values.yaml -n harbor
@@ -69,5 +71,47 @@ helm install harbor harbor/harbor -f harbor/values.yaml -n harbor
 helm upgrade harbor harbor/harbor -f harbor/values.yaml -n harbor # 升级
 ```
 
+## 安装Docker
+```bash
+chmod +x docker/install-docker-in-debian.sh
 
+bash docker/install-docker-in-debian.sh
+```
 
+## 提交镜像到Harbor
+配置Docker
+```bash
+sudo vim /etc/docker/daemon.json
+```
+插入以下内容:
+```
+{
+  "insecure-registries": ["192.168.56.100:30002"]
+}
+```
+重启Docker
+```bash
+sudo systemctl restart docker
+```
+登录Harbor
+```bash
+docker login 192.168.56.100:30002
+```
+默认Harbor用户名密码
+```
+Username:admin
+Password:Harbor12345
+```
+以nginx镜像为例:
+```bash
+docker pull nginx:latest
+docker tag nginx:latest 192.168.56.100:30002/library/nginx:latest
+docker push 192.168.56.100:30002/library/nginx:latest
+```
+创建Secret以便于k8s使用Harbor仓库
+```bash
+kubectl create secret docker-registry harbor-secret \
+  --docker-server=192.168.56.100:30002 \
+  --docker-username=admin \
+  --docker-password=Harbor12345
+```

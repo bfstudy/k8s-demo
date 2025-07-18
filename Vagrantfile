@@ -53,7 +53,7 @@ Vagrant.configure("2") do |config|
       cp /home/vagrant/.kube/config /vagrant/kubeconfig/config
       
       # Modify server address for external access
-      sed -i 's|server: https://.*:6443|server: https://127.0.0.1:6443|' /vagrant/kubeconfig/config
+      sed -i -E 's|server: https://[0-9\.]+:6443|server: https://192.168.56.100:6443|' /vagrant/kubeconfig/config
       
       echo "Kubeconfig copied to ./kubeconfig/config"
       echo "To access cluster from host, run:"
@@ -73,8 +73,6 @@ Vagrant.configure("2") do |config|
     
     # Port forwarding for NodePort services on worker
     worker.vm.network "forwarded_port", guest: 30000, host: 30010, protocol: "tcp"
-    worker.vm.network "forwarded_port", guest: 30001, host: 30011, protocol: "tcp"
-    worker.vm.network "forwarded_port", guest: 30002, host: 30012, protocol: "tcp"
     
     worker.vm.provider "virtualbox" do |vb|
       vb.name = "k8s-worker1"
@@ -84,5 +82,39 @@ Vagrant.configure("2") do |config|
     
     worker.vm.provision "shell", path: "common.sh"
     worker.vm.provision "shell", path: "worker.sh", args: [MASTER_IP]
+  end
+
+  nodes = {
+    "k8s-master" => MASTER_IP,
+    "k8s-worker1" => WORKER_IP
+  }
+
+  nodes.each do |name, ip|
+    config.vm.define name do |node|
+      node.vm.provision "shell", inline: <<-SHELL
+        echo "[INFO] Configuring containerd for insecure Harbor registry on #{name}..."
+
+        export DEBIAN_FRONTEND=noninteractive
+
+        if [ ! -f /etc/containerd/config.toml ]; then
+          sudo mkdir -p /etc/containerd
+          containerd config default | sudo tee /etc/containerd/config.toml
+        fi
+
+        if ! grep -q '192.168.56.100:30002' /etc/containerd/config.toml; then
+          echo "[INFO] Adding insecure Harbor registry config..."
+          sudo sed -i '/\\[plugins."io.containerd.grpc.v1.cri".registry\\]/a \\
+[plugins."io.containerd.grpc.v1.cri".registry.mirrors."192.168.56.100:30002"]\\n\\
+  endpoint = ["http://192.168.56.100:30002"]
+          ' /etc/containerd/config.toml
+        else
+          echo "[INFO] Harbor registry config already present."
+        fi
+
+        sudo systemctl restart containerd
+        sudo systemctl restart kubelet
+        echo "[INFO] Done on #{name}"
+      SHELL
+    end
   end
 end
