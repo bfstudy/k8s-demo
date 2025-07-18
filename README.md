@@ -57,6 +57,7 @@ helm install harbor harbor/harbor --namespace harbor
 
 ## 安装kubepi
 ```bash
+kubectl apply -f https://raw.githubusercontent.com/1Panel-dev/KubePi/master/docs/deploy/kubectl/kubepi.yaml # 无持久化
 ```
 
 ## 安装harbor
@@ -64,4 +65,9 @@ helm install harbor harbor/harbor --namespace harbor
 kubectl apply -f harbor/local-storage.yaml
 kubectl apply -f harbor/harbor-pv-pvc.yaml
 helm install harbor harbor/harbor -f harbor/values.yaml -n harbor
+
+helm upgrade harbor harbor/harbor -f harbor/values.yaml -n harbor # 升级
 ```
+
+
+

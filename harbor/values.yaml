@@ -1,3 +1,16 @@
+expose:
+  type: nodePort
+  tls:
+    enabled: false  # 禁用TLS
+  nodePort:
+    name: harbor
+    ports:
+      http:
+        port: 80
+        nodePort: 30002
+
+externalURL: http://192.168.56.100:30002
+
 persistence:
   enabled: true
   # Setting it to "keep" to avoid removing PVCs during a helm delete

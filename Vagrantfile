@@ -29,9 +29,6 @@ Vagrant.configure("2") do |config|
     # Port forwarding for K8s API server (alternative to public network)
     master.vm.network "forwarded_port", guest: 6443, host: 6443, protocol: "tcp"
     # Port forwarding for NodePort services range
-    master.vm.network "forwarded_port", guest: 30000, host: 30000, protocol: "tcp"
-    master.vm.network "forwarded_port", guest: 30001, host: 30001, protocol: "tcp"
-    master.vm.network "forwarded_port", guest: 30002, host: 30002, protocol: "tcp"
     # Add more NodePort mappings as needed (30000-32767 range)
     master.vm.network "forwarded_port", guest: 30080, host: 30080
     
