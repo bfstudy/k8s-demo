@@ -1,5 +1,6 @@
 .vagrant/
-kubeconfig
+data/
+kubeconfig/
 
 join-command.sh
 kubectl

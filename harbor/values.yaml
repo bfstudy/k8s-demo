@@ -1,0 +1,46 @@
+persistence:
+  enabled: true
+  # Setting it to "keep" to avoid removing PVCs during a helm delete
+  resourcePolicy: "keep"
+  persistentVolumeClaim:
+    registry:
+      # 使用预创建的 PVC
+      existingClaim: "harbor-registry-pvc"
+      storageClass: "local-storage"
+      subPath: ""
+      accessMode: ReadWriteOnce
+      size: 5Gi
+      annotations: {}
+    jobservice:
+      jobLog:
+        # 使用预创建的 PVC
+        existingClaim: "harbor-jobservice-pvc"
+        storageClass: "local-storage"
+        subPath: ""
+        accessMode: ReadWriteOnce
+        size: 1Gi
+        annotations: {}
+    database:
+      # 使用预创建的 PVC
+      existingClaim: "harbor-database-pvc"
+      storageClass: "local-storage"
+      subPath: ""
+      accessMode: ReadWriteOnce
+      size: 1Gi
+      annotations: {}
+    redis:
+      # 使用预创建的 PVC
+      existingClaim: "harbor-redis-pvc"
+      storageClass: "local-storage"
+      subPath: ""
+      accessMode: ReadWriteOnce
+      size: 1Gi
+      annotations: {}
+    trivy:
+      # 使用预创建的 PVC
+      existingClaim: "harbor-trivy-pvc"
+      storageClass: "local-storage"
+      subPath: ""
+      accessMode: ReadWriteOnce
+      size: 5Gi
+      annotations: {}
